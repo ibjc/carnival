@@ -112,8 +112,8 @@ def figure_2_1():
     plt.violinplot(dataset=np.random.randn(200,10) + np.random.randn(10))
     plt.xlabel("Action")
     plt.ylabel("Reward distribution")
-    plt.savefig('../images/figure_2_1.png')
-    plt.close()
+
+    plt.show()
 
 def figure_2_2(runs=2000, time=1000):
     epsilons = [0, 0.1, 0.01]
@@ -136,8 +136,8 @@ def figure_2_2(runs=2000, time=1000):
     plt.ylabel('% optimal action')
     plt.legend()
 
-    plt.savefig('../images/figure_2_2.png')
-    plt.close()
+
+    plt.show()
 
 def figure_2_3(runs=2000, time=1000):
     bandits = []
@@ -151,8 +151,7 @@ def figure_2_3(runs=2000, time=1000):
     plt.ylabel('% optimal action')
     plt.legend()
 
-    plt.savefig('../images/figure_2_3.png')
-    plt.close()
+    plt.show()
 
 def figure_2_4(runs=2000, time=1000):
     bandits = []
@@ -166,8 +165,7 @@ def figure_2_4(runs=2000, time=1000):
     plt.ylabel('Average reward')
     plt.legend()
 
-    plt.savefig('../images/figure_2_4.png')
-    plt.close()
+    plt.show()
 
 def figure_2_5(runs=2000, time=1000):
     bandits = []
@@ -187,8 +185,7 @@ def figure_2_5(runs=2000, time=1000):
     plt.ylabel('% Optimal action')
     plt.legend()
 
-    plt.savefig('../images/figure_2_5.png')
-    plt.close()
+    plt.show()
 
 def figure_2_6(runs=2000, time=1000):
     labels = ['epsilon-greedy', 'gradient bandit',
@@ -219,8 +216,7 @@ def figure_2_6(runs=2000, time=1000):
     plt.ylabel('Average reward')
     plt.legend()
 
-    plt.savefig('../images/figure_2_6.png')
-    plt.close()
+    plt.show()
 
 if __name__ == '__main__':
     figure_2_1()
