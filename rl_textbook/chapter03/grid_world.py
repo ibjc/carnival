@@ -75,6 +75,10 @@ def figure_3_2():
     while True:
         # keep iteration until convergence
         new_value = np.zeros(value.shape)
+
+        #for every cell in the grid
+        #try every action (which returns both a new state and reward)
+        #record results
         for i in range(0, WORLD_SIZE):
             for j in range(0, WORLD_SIZE):
                 for action in ACTIONS:
@@ -83,8 +87,8 @@ def figure_3_2():
                     new_value[i, j] += ACTION_PROB * (reward + DISCOUNT * value[next_i, next_j])
         if np.sum(np.abs(value - new_value)) < 1e-4:
             draw_image(np.round(new_value, decimals=2))
-            plt.savefig('../images/figure_3_2.png')
-            plt.close()
+            #plt.savefig('../images/figure_3_2.png')
+            plt.show()
             break
         value = new_value
 
@@ -103,8 +107,8 @@ def figure_3_5():
                 new_value[i, j] = np.max(values)
         if np.sum(np.abs(new_value - value)) < 1e-4:
             draw_image(np.round(new_value, decimals=2))
-            plt.savefig('../images/figure_3_5.png')
-            plt.close()
+            #plt.savefig('../images/figure_3_5.png')
+            plt.show()
             break
         value = new_value
 

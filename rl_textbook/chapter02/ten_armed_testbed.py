@@ -52,9 +52,13 @@ class Bandit:
 
     # get an action for this bandit
     def act(self):
+
+        #exploration
+        #epsilon-pct of the time, we will pick an action randomly
         if np.random.rand() < self.epsilon:
             return np.random.choice(self.indices)
 
+        #compute each arm's UCB, and take the argmax of that
         if self.UCB_param is not None:
             UCB_estimation = self.q_estimation + \
                      self.UCB_param * np.sqrt(np.log(self.time + 1) / (self.action_count + 1e-5))
@@ -66,6 +70,7 @@ class Bandit:
             self.action_prob = exp_est / np.sum(exp_est)
             return np.random.choice(self.indices, p=self.action_prob)
 
+        #default action is greedy; take index w/ best estimated reward
         return np.argmax(self.q_estimation)
 
     # take an action, update estimation for this action
@@ -143,10 +148,12 @@ def figure_2_3(runs=2000, time=1000):
     bandits = []
     bandits.append(Bandit(epsilon=0, initial=5, step_size=0.1))
     bandits.append(Bandit(epsilon=0.1, initial=0, step_size=0.1))
+    bandits.append(Bandit(epsilon=0.1, initial=5, step_size=0.1))
     best_action_counts, _ = simulate(runs, time, bandits)
 
     plt.plot(best_action_counts[0], label='epsilon = 0, q = 5')
     plt.plot(best_action_counts[1], label='epsilon = 0.1, q = 0')
+    plt.plot(best_action_counts[2], label='epsilon = 0.1, q = 5')
     plt.xlabel('Steps')
     plt.ylabel('% optimal action')
     plt.legend()
