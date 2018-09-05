@@ -76,6 +76,8 @@ def expected_return(state, action, state_value, constant_returned_cars):
     for rental_request_first_loc in range(0, POISSON_UPPER_BOUND):
         for rental_request_second_loc in range(0, POISSON_UPPER_BOUND):
             # moving cars
+            #positive action is moving cars from first to second location
+            #negative is reverse direction
             num_of_cars_first_loc = int(min(state[0] - action, MAX_CARS))
             num_of_cars_second_loc = int(min(state[1] + action, MAX_CARS))
 
@@ -85,6 +87,8 @@ def expected_return(state, action, state_value, constant_returned_cars):
 
             # get credits for renting
             reward = (real_rental_first_loc + real_rental_second_loc) * RENTAL_CREDIT
+
+            #update post-renting car counts
             num_of_cars_first_loc -= real_rental_first_loc
             num_of_cars_second_loc -= real_rental_second_loc
 
@@ -96,16 +100,26 @@ def expected_return(state, action, state_value, constant_returned_cars):
                 # get returned cars, those cars can be used for renting tomorrow
                 returned_cars_first_loc = RETURNS_FIRST_LOC
                 returned_cars_second_loc = RETURNS_SECOND_LOC
+
+                #update post-returns car counts
                 num_of_cars_first_loc = min(num_of_cars_first_loc + returned_cars_first_loc, MAX_CARS)
                 num_of_cars_second_loc = min(num_of_cars_second_loc + returned_cars_second_loc, MAX_CARS)
+
+                #bellman
                 returns += prob * (reward + DISCOUNT * state_value[num_of_cars_first_loc, num_of_cars_second_loc])
             else:
                 for returned_cars_first_loc in range(0, POISSON_UPPER_BOUND):
                     for returned_cars_second_loc in range(0, POISSON_UPPER_BOUND):
+
+                        #update post-returns car counts
                         num_of_cars_first_loc_ = min(num_of_cars_first_loc + returned_cars_first_loc, MAX_CARS)
                         num_of_cars_second_loc_ = min(num_of_cars_second_loc + returned_cars_second_loc, MAX_CARS)
+
+                        #probability of this particular combination of returns
                         prob_ = poisson(returned_cars_first_loc, RETURNS_FIRST_LOC) * \
                                poisson(returned_cars_second_loc, RETURNS_SECOND_LOC) * prob
+
+                        #bellman
                         returns += prob_ * (reward + DISCOUNT * state_value[num_of_cars_first_loc_, num_of_cars_second_loc_])
     return returns
 
@@ -127,6 +141,10 @@ def figure_4_2(constant_returned_cars=True):
         # policy evaluation (in-place)
         while True:
             new_value = np.copy(value)
+
+            #iterate over every possible state [i,j]
+            #which represents number of cars currently at the two locations
+
             for i in range(MAX_CARS + 1):
                 for j in range(MAX_CARS + 1):
                     new_value[i, j] = expected_return([i, j], policy[i, j], new_value,
@@ -143,10 +161,16 @@ def figure_4_2(constant_returned_cars=True):
             for j in range(MAX_CARS + 1):
                 action_returns = []
                 for action in actions:
+
+                    #this is validating that the action is possible given the current car inventories.
+                    #ex: action > 0 indicates a movement from first to second location.
+                    #so, we need to have at least "action"-number of cars at the first location
                     if (action >= 0 and i >= action) or (action < 0 and j >= abs(action)):
                         action_returns.append(expected_return([i, j], action, value, constant_returned_cars))
                     else:
                         action_returns.append(-float('inf'))
+
+                #select best action for state [i,j]
                 new_policy[i, j] = actions[np.argmax(action_returns)]
 
         policy_change = (new_policy != policy).sum()
@@ -162,8 +186,9 @@ def figure_4_2(constant_returned_cars=True):
 
         iterations += 1
 
-    plt.savefig('../images/figure_4_2.png')
-    plt.close()
+    #plt.savefig('../images/figure_4_2.png')
+    
+    plt.show()
 
 if __name__ == '__main__':
     figure_4_2()
