@@ -143,7 +143,9 @@ def figure_4_2(constant_returned_cars=True):
             new_value = np.copy(value)
 
             #iterate over every possible state [i,j]
-            #which represents number of cars currently at the two locations
+            #which represents number of cars currently at the two locations.
+
+            #also note that we only evaluate one action per state per loop
 
             for i in range(MAX_CARS + 1):
                 for j in range(MAX_CARS + 1):
