@@ -50,7 +50,7 @@ def get_card():
     return card
 
 # play a game
-# @policy_player: specify policy for player
+# @policy_player: specify policy for player (this is a function type)
 # @initial_state: [whether player has a usable Ace, sum of player's cards, one card of dealer]
 # @initial_action: the initial action
 def play(policy_player, initial_state=None, initial_action=None):
@@ -60,6 +60,7 @@ def play(policy_player, initial_state=None, initial_action=None):
     player_sum = 0
 
     # trajectory of player
+    #each element holds current state and action taken
     player_trajectory = []
 
     # whether player uses Ace as 11
@@ -76,6 +77,8 @@ def play(policy_player, initial_state=None, initial_action=None):
         num_of_ace = 0
 
         # initialize cards of player
+        #this assumes the player will always hit
+        #up to 12 before a decision point
         while player_sum < 12:
             # if sum of player is less than 12, always hit
             card = get_card()
@@ -87,7 +90,7 @@ def play(policy_player, initial_state=None, initial_action=None):
                 usable_ace_player = True
             player_sum += card
 
-        # if player's sum is larger than 21, he must hold at least one Ace, two Aces are possible
+        # if player's sum is larger than 21, he must hold at least one Ace, at most two Aces are possible
         if player_sum > 21:
             # use the Ace as 1 rather than 11
             player_sum -= 10
@@ -110,6 +113,8 @@ def play(policy_player, initial_state=None, initial_action=None):
 
     # initialize dealer's sum
     dealer_sum = 0
+
+    #every possible card index/is_ace scenario
     if dealer_card1 == 1 and dealer_card2 != 1:
         dealer_sum += 11 + dealer_card2
         usable_ace_dealer = True
@@ -122,7 +127,9 @@ def play(policy_player, initial_state=None, initial_action=None):
     else:
         dealer_sum += dealer_card1 + dealer_card2
 
+    ###################################
     # game starts!
+    ###################################
 
     # player's turn
     while True:
@@ -183,18 +190,29 @@ def play(policy_player, initial_state=None, initial_action=None):
         return state, -1, player_trajectory
 
 # Monte Carlo Sample with On-Policy
+# only evaluates policy; no improvement
 def monte_carlo_on_policy(episodes):
+    
+    #cartesian product of current hand sum x dealer shown card
+    #2 versions:
+    #first where aces is 11
+    #second where aces is 1
     states_usable_ace = np.zeros((10, 10))
+    states_no_usable_ace = np.zeros((10, 10))
+    
     # initialze counts to 1 to avoid 0 being divided
     states_usable_ace_count = np.ones((10, 10))
-    states_no_usable_ace = np.zeros((10, 10))
-    # initialze counts to 1 to avoid 0 being divided
     states_no_usable_ace_count = np.ones((10, 10))
+
+    #each episode is a single hand of blackjack
     for i in tqdm(range(0, episodes)):
         _, reward, player_trajectory = play(target_policy_player)
         for (usable_ace, player_sum, dealer_card), _ in player_trajectory:
+
+            #adjusting state variables to 0-9 indices
             player_sum -= 12
             dealer_card -= 1
+
             if usable_ace:
                 states_usable_ace_count[player_sum, dealer_card] += 1
                 states_usable_ace[player_sum, dealer_card] += reward
@@ -204,6 +222,7 @@ def monte_carlo_on_policy(episodes):
     return states_usable_ace / states_usable_ace_count, states_no_usable_ace / states_no_usable_ace_count
 
 # Monte Carlo with Exploring Starts
+# this improves policy 
 def monte_carlo_es(episodes):
     # (playerSum, dealerCard, usableAce, action)
     state_action_values = np.zeros((10, 10, 2, 2))
@@ -216,6 +235,7 @@ def monte_carlo_es(episodes):
         player_sum -= 12
         dealer_card -= 1
         # get argmax of the average returns(s, a)
+        # picks randomly if there's a tie
         values_ = state_action_values[player_sum, dealer_card, usable_ace, :] / \
                   state_action_pair_count[player_sum, dealer_card, usable_ace, :]
         return np.random.choice([action_ for action_, value_ in enumerate(values_) if value_ == np.max(values_)])
@@ -254,8 +274,22 @@ def monte_carlo_off_policy(episodes):
         denominator = 1.0
         for (usable_ace, player_sum, dealer_card), action in player_trajectory:
             if action == target_policy_player(usable_ace, player_sum, dealer_card):
+
+                #whenever the target and behavior policy matches, we mulitply
+                #rho by 
+                #   target_policy[probabilty(action | state)] 
+                #   /
+                #   behavior_policy[probabilty(action | state)]
+
+                #Since target_policy is deterministic, and behavior_policy is 
+                #choose hit/stay at 50%, we are multiplying 1 / (1/2), or
+                # multiplying current denominator by 0.5
                 denominator *= 0.5
             else:
+
+                #if we have a mismatch in action, then the two trajectories
+                #do not match, and we will throw out this episode
+
                 numerator = 0.0
                 break
         rho = numerator / denominator
@@ -264,8 +298,11 @@ def monte_carlo_off_policy(episodes):
 
     rhos = np.asarray(rhos)
     returns = np.asarray(returns)
+
+    #note that this is elementwise product
     weighted_returns = rhos * returns
 
+    #rolling sum from start to current index of both rhos and rho * return
     weighted_returns = np.add.accumulate(weighted_returns)
     rhos = np.add.accumulate(rhos)
 
@@ -301,8 +338,7 @@ def figure_5_1():
         fig.set_xlabel('dealer showing', fontsize=30)
         fig.set_title(title, fontsize=30)
 
-    plt.savefig('../images/figure_5_1.png')
-    plt.close()
+    plt.show()
 
 def figure_5_2():
     state_action_values = monte_carlo_es(500000)
@@ -335,8 +371,7 @@ def figure_5_2():
         fig.set_xlabel('dealer showing', fontsize=30)
         fig.set_title(title, fontsize=30)
 
-    plt.savefig('../images/figure_5_2.png')
-    plt.close()
+    plt.show()
 
 def figure_5_3():
     true_value = -0.27726
@@ -359,8 +394,7 @@ def figure_5_3():
     plt.xscale('log')
     plt.legend()
 
-    plt.savefig('../images/figure_5_3.png')
-    plt.close()
+    plt.show()
 
 
 if __name__ == '__main__':
