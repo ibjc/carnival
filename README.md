@@ -6,4 +6,5 @@ Blog series on RI: https://medium.com/emergent-future/simple-reinforcement-learn
 
 ### Actor Critic
 Visual example: https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752
+
 Code Keras: https://towardsdatascience.com/reinforcement-learning-w-keras-openai-actor-critic-models-f084612cfd69
