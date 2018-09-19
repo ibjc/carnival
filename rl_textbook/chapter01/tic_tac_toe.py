@@ -214,6 +214,8 @@ class Player:
 
         for i in reversed(range(len(self.states) - 1)):
             state = self.states[i]
+            
+            #bellman equation
             td_error = self.greedy[i] * (self.estimations[self.states[i + 1]] - self.estimations[state])
             self.estimations[state] += self.step_size * td_error
 
@@ -237,8 +239,12 @@ class Player:
         values = []
         for hash, pos in zip(next_states, next_positions):
             values.append((self.estimations[hash], pos))
+
+        #shuffle values to ensure unstable tie-break
         np.random.shuffle(values)
         values.sort(key=lambda x: x[0], reverse=True)
+
+        #ultimately pick the action w/ highest value
         action = values[0][1]
         action.append(self.symbol)
         return action
