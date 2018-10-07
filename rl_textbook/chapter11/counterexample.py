@@ -242,8 +242,9 @@ def figure_11_2():
     plt.subplot(2, 1, 2)
     figure_11_2_right()
 
-    plt.savefig('../images/figure_11_2.png')
-    plt.close()
+    #plt.savefig('../images/figure_11_2.png')
+    #plt.close()
+    plot.show()
 
 # Figure 11.6(left), temporal difference with gradient correction
 def figure_11_6_left():
